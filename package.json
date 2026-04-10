@@ -1,8 +1,27 @@
 {
   "name": "elm-ancillary-json",
+  "scripts": {
+    "elm-bump": "npm-run-all --print-name --silent --sequential test bump-version",
+    "bump-version": "(yes | elm bump)",
+    "postinstall": "elm-tooling install",
+    "preview-docs": "elm-doc-preview",
+    "review": "npx elm-review --fix",
+    "test": "npm-run-all --print-name --silent --sequential test:make test:format test:run test:verify-examples test:review",
+    "test:format": "elm-format src/ tests/ --validate",
+    "test:make": "elm make --docs=docs.json",
+    "test:review": "elm-review",
+    "test:run": "elm-test-rs",
+    "test:verify-examples": "elm-verify-examples --run-tests"
+  },
+  "license": "BSD-3-Clause",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/langyu-app/elm-ancillary-nonempty-list.git"
+  },
   "devDependencies": {
-    "elm-format": "^0.8.5",
-    "elm-review": "^2.4.6",
-    "elm-test": "^0.19.1-revision6"
+    "elm-doc-preview": "^6.0.1",
+    "elm-review": "^2.13.5",
+    "elm-tooling": "^1.17.0",
+    "npm-run-all": "^4.1.5"
   }
 }
