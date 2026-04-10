@@ -3,7 +3,6 @@ module TestJsonDecode exposing (suite)
 import Dict
 import Expect
 import Fuzz
-import Fuzz.Extra as FuzzX
 import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Ancillary
     exposing
@@ -19,7 +18,7 @@ import Json.Decode.Ancillary
 import Json.Encode as Encode
 import Parser exposing ((|.), (|=), Parser)
 import Test exposing (Test, concat, describe, fuzz)
-import Test.Extra as TestX exposing (DecoderExpectation(..))
+import TestExtra as TestX exposing (DecoderExpectation(..))
 
 
 {-| Test suite for `Json.Decode.Ancillary`.
@@ -89,7 +88,7 @@ suite =
                 ]
             , describe "mapMaybe"
                 [ fuzz
-                    (FuzzX.eitherOr Fuzz.string (Fuzz.map String.fromInt Fuzz.int))
+                    (Fuzz.oneOf [ Fuzz.string, Fuzz.map String.fromInt Fuzz.int ])
                     "string to int"
                     (\s ->
                         let
@@ -130,7 +129,7 @@ suite =
                 ]
             , describe "mapResult"
                 [ fuzz
-                    (FuzzX.eitherOr Fuzz.string (Fuzz.map String.fromInt Fuzz.int))
+                    (Fuzz.oneOf [ Fuzz.string, Fuzz.map String.fromInt Fuzz.int ])
                     "string to int"
                     (\s ->
                         let
@@ -233,17 +232,17 @@ suite =
                 [ TestX.describeDecoder
                     "animalDecoder"
                     (mapByField
-                        [ ( "dog", \i -> { species = "Dog", age = i } )
-                        , ( "cat", \i -> { species = "Cat", age = i } )
-                        , ( "bird", \i -> { species = "Bird", age = i } )
+                        [ ( "dog", \i -> { age = i, species = "Dog" } )
+                        , ( "cat", \i -> { age = i, species = "Cat" } )
+                        , ( "bird", \i -> { age = i, species = "Bird" } )
                         ]
                         Decode.int
                     )
-                    (\{ species, age } -> species ++ String.fromInt age)
+                    (\{ age, species } -> species ++ String.fromInt age)
                     [ ( "true", FailsToDecode )
                     , ( "42", FailsToDecode )
-                    , ( "{\"dog\": 6}", DecodesTo { species = "Dog", age = 6 } )
-                    , ( "{\"bird\": 10}", DecodesTo { species = "Bird", age = 10 } )
+                    , ( "{\"dog\": 6}", DecodesTo { age = 6, species = "Dog" } )
+                    , ( "{\"bird\": 10}", DecodesTo { age = 10, species = "Bird" } )
                     , ( "3.14", FailsToDecode )
                     , ( "\"dog\"", FailsToDecode )
                     , ( "{\"dog\": \"hello\"}", FailsToDecode )
