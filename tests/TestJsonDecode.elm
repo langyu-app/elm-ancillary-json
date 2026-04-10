@@ -49,13 +49,13 @@ suite =
                             predicate =
                                 (==) 0 << modBy 2
 
-                            decoder : Decoder Int
-                            decoder =
-                                validate predicate "Invalid!" Decode.int
-
                             result : Result Decode.Error Int
                             result =
                                 Decode.decodeValue decoder <| Encode.int i
+
+                            decoder : Decoder Int
+                            decoder =
+                                validate predicate "Invalid!" Decode.int
                         in
                         if predicate i then
                             Expect.equal result <| Ok i
@@ -67,17 +67,17 @@ suite =
                     "test nonempty strings"
                     (\s ->
                         let
-                            predicate : String -> Bool
-                            predicate =
-                                not << String.isEmpty
+                            result : Result Decode.Error String
+                            result =
+                                Decode.decodeValue decoder <| Encode.string s
 
                             decoder : Decoder String
                             decoder =
                                 validate predicate "Invalid!" Decode.string
 
-                            result : Result Decode.Error String
-                            result =
-                                Decode.decodeValue decoder <| Encode.string s
+                            predicate : String -> Bool
+                            predicate =
+                                not << String.isEmpty
                         in
                         if String.isEmpty s then
                             Expect.err result
@@ -92,13 +92,13 @@ suite =
                     "string to int"
                     (\s ->
                         let
-                            decoder : Decoder Int
-                            decoder =
-                                mapMaybe String.toInt "Expected a string-encoded integer!" Decode.string
-
                             result : Result Decode.Error Int
                             result =
                                 Decode.decodeValue decoder <| Encode.string s
+
+                            decoder : Decoder Int
+                            decoder =
+                                mapMaybe String.toInt "Expected a string-encoded integer!" Decode.string
                         in
                         case String.toInt s of
                             Just i ->
@@ -112,13 +112,13 @@ suite =
                     "list head"
                     (\ss ->
                         let
-                            decoder : Decoder String
-                            decoder =
-                                mapMaybe List.head "Expected a nonempty list!" (Decode.list Decode.string)
-
                             result : Result Decode.Error String
                             result =
                                 Decode.decodeValue decoder <| Encode.list Encode.string ss
+
+                            decoder : Decoder String
+                            decoder =
+                                mapMaybe List.head "Expected a nonempty list!" (Decode.list Decode.string)
                         in
                         if List.isEmpty ss then
                             Expect.err result
@@ -133,6 +133,16 @@ suite =
                     "string to int"
                     (\s ->
                         let
+                            result : Result Decode.Error Int
+                            result =
+                                Decode.decodeValue decoder <| Encode.string s
+
+                            decoder : Decoder Int
+                            decoder =
+                                mapResult
+                                    (Result.mapError (always "dead ends haven't been implemented") << Parser.run intParser)
+                                    Decode.string
+
                             intParser : Parser Int
                             intParser =
                                 Parser.oneOf
@@ -142,18 +152,6 @@ suite =
                                     , Parser.int
                                     ]
                                     |. Parser.end
-
-                            decoder : Decoder Int
-                            decoder =
-                                Decode.string
-                                    |> mapResult
-                                        (Result.mapError (always "dead ends haven't been implemented")
-                                            << Parser.run intParser
-                                        )
-
-                            result : Result Decode.Error Int
-                            result =
-                                Decode.decodeValue decoder <| Encode.string s
                         in
                         case String.toInt s of
                             Just i ->
